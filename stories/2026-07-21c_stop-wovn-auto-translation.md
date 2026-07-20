@@ -1,6 +1,8 @@
 # Block WOVN.io's browser-language auto-translation
 
-**Summary.** `skylark.co.jp` (Gusto menu and siblings) embeds **WOVN.io**
+## Summary
+
+`skylark.co.jp` (Gusto menu and siblings) embeds **WOVN.io**
 (`j.wovn.io`), a third-party JS localization widget that reads the visitor's
 browser-language priority and **auto-switches the page out of Japanese**. For the
 owner (browser languages `en-GB, en-US, ja, en`, English above Japanese) a first
@@ -8,8 +10,7 @@ visit to `https://www.skylark.co.jp/gusto/menu/` flips to English on its own. Th
 owner is a Japanese speaker and wants the original Japanese. **Add a static
 `declarativeNetRequest` rule that blocks the WOVN loader script on every site**,
 so the widget never runs and each page stays in its server-rendered original
-language. Status: **not started** — problem reproduced and root-caused live;
-approach and global scope decided with the owner.
+language.
 
 This is bouncer's **third** network-block feature and a near-exact parallel to
 the existing Shutto rule (`stories/2026-07-21b`, shipped). Read that story and
@@ -17,6 +18,12 @@ the existing Shutto rule (`stories/2026-07-21b`, shipped). Read that story and
 different translation vendor, and (like Shutto, by the owner's choice) **global,
 not site-scoped.** The couple of ways WOVN differs from Shutto are called out
 explicitly below; none of them change the fix.
+
+## Status
+
+**Not started** — problem reproduced and root-caused live in Chrome
+(2026-07-21); approach and global scope decided with the owner. This PR adds the
+story only; no code has been written.
 
 ## Context
 
