@@ -6,8 +6,9 @@ Runs on **Firefox** (mainly) and **Chrome**. Manifest V3, TypeScript, no
 framework — a hand-written manifest plus plain source, compiled and zipped by a
 small npm script.
 
-> **Status:** first feature shipped. Blocks the filmarks.com ad-gate popup
-> (see [Features](#features)). Still loads cleanly in both browsers.
+> **Status:** two features shipped. Blocks the filmarks.com ad-gate popup and
+> Shutto Translation's browser-language auto-translation (see
+> [Features](#features)). Still loads cleanly in both browsers.
 
 ## Features
 
@@ -27,9 +28,25 @@ Geniee is untouched on every other site. The same Geniee wall appears on other
 sites that embed it — **to generalise, widen `initiatorDomains`** (add more
 domains) or drop the `initiatorDomains` condition to block Geniee everywhere.
 
-Block rules need no host permissions on either browser (verified: Firefox grants
-blocking under the plain `declarativeNetRequest` permission, same as Chrome), so
-the manifest stays minimal.
+### Stop Shutto Translation's browser-language auto-translation
+
+Many Japanese sites embed **Shutto Translation** (シャトル翻訳,
+`d.shutto-translation.com`), a JS widget that reads the visitor's browser
+language priority and **auto-translates the page** client-side. With English
+ranked above Japanese in the browser, it silently rewrites native Japanese sites
+into English (the page renders in Japanese, then flashes to English within ~1s).
+bouncer blocks the Shutto loader script at the network layer with a static
+[`declarativeNetRequest`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest)
+rule (`src/rules/shutto.json`), so the widget never runs and each page stays in
+its server-rendered original language — no flash, no cleanup. Declarative config,
+not code: no content script, no background logic.
+
+Unlike the filmarks rule, this one is **global** — it has **no**
+`initiatorDomains`, so Shutto is blocked on every site. That's deliberate: the
+annoyance is the mechanism, not one domain. Scope is tuned via `initiatorDomains`
+— **add it to narrow** the block to specific sites, **omit it to keep global**.
+(Consequence of global: a non-Japanese site that uses Shutto to translate *into*
+Japanese will show its original language instead.)
 
 ## Prerequisites
 
