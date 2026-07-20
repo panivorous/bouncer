@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "bouncer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "My personal all-in-one browser extension that fixes my browsing annoyances.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -19,6 +19,11 @@
         "id": "filmarks_geniee",
         "enabled": true,
         "path": "rules/filmarks-geniee.json"
+      },
+      {
+        "id": "shutto",
+        "enabled": true,
+        "path": "rules/shutto.json"
       }
     ]
   },
