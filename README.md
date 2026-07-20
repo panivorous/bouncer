@@ -6,8 +6,30 @@ Runs on **Firefox** (mainly) and **Chrome**. Manifest V3, TypeScript, no
 framework — a hand-written manifest plus plain source, compiled and zipped by a
 small npm script.
 
-> **Status:** scaffold only. No behaviour yet — this repo currently just
-> installs and loads cleanly in both browsers so future features have a home.
+> **Status:** first feature shipped. Blocks the filmarks.com ad-gate popup
+> (see [Features](#features)). Still loads cleanly in both browsers.
+
+## Features
+
+### Remove the filmarks.com ad-gate popup
+
+filmarks.com throws up a full-page **「引き続き利用いただくには」** ("To keep
+using this site") modal that scroll-locks the page until you watch an ad. That
+wall is Geniee's "Overlay Wall", built by ad scripts served from
+`cpt.geniee.jp`. bouncer blocks those scripts at the network layer with a static
+[`declarativeNetRequest`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest)
+rule (`src/rules/filmarks-geniee.json`), so the wall is never built — no flash,
+no cleanup, and the rest of the site keeps working. This is declarative config,
+not code: no content script, no background logic.
+
+The rule is scoped to filmarks by `initiatorDomains: ["filmarks.com"]`, so
+Geniee is untouched on every other site. The same Geniee wall appears on other
+sites that embed it — **to generalise, widen `initiatorDomains`** (add more
+domains) or drop the `initiatorDomains` condition to block Geniee everywhere.
+
+Block rules need no host permissions on either browser (verified: Firefox grants
+blocking under the plain `declarativeNetRequest` permission, same as Chrome), so
+the manifest stays minimal.
 
 ## Prerequisites
 
@@ -88,6 +110,7 @@ src/
   manifest.json      # single MV3 manifest for both browsers
   background.ts      # placeholder service worker (no behaviour yet)
   icons/             # generated placeholder icons (16/48/128)
+  rules/             # static declarativeNetRequest rulesets (network blocks)
 scripts/
   build.mjs          # esbuild compile + copy assets -> dist/
   check-node.mjs     # fail fast if Node/npm don't match the pin

@@ -3,7 +3,7 @@
 // Turns the `src/` tree into a loadable, unpacked extension in `dist/`:
 //   1. clean dist/
 //   2. compile src/background.ts -> dist/background.js (esbuild)
-//   3. copy static assets (manifest.json, icons/) into dist/
+//   3. copy static assets (manifest.json, icons/, rules/) into dist/
 //
 // Packaging dist/ into per-browser .zip artifacts is done separately by the
 // `build:chrome` / `build:firefox` npm scripts (web-ext). Run everything with
@@ -34,8 +34,11 @@ await build({
   logLevel: "info",
 });
 
-// 3. Copy static assets verbatim.
+// 3. Copy static assets verbatim. `rules/` holds the static declarativeNetRequest
+//    rulesets referenced by manifest.json (paths there are relative to the
+//    extension root, so the files must exist at dist/rules/).
 await cp(resolve(srcDir, "manifest.json"), resolve(distDir, "manifest.json"));
 await cp(resolve(srcDir, "icons"), resolve(distDir, "icons"), { recursive: true });
+await cp(resolve(srcDir, "rules"), resolve(distDir, "rules"), { recursive: true });
 
 console.log("Bundled extension into dist/");

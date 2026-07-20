@@ -1,6 +1,8 @@
 # Remove the filmarks.com "引き続き利用いただくには" ad-gate popup
 
-- **Status:** Not started — handover for the implementing agent.
+- **Status:** Done — shipped in v0.2.0. Implemented as a static
+  `declarativeNetRequest` block rule (`src/rules/filmarks-geniee.json`); verified
+  in Chrome and Firefox.
 
 ---
 
