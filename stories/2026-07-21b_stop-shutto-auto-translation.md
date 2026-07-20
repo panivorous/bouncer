@@ -1,21 +1,26 @@
 # Block Shutto Translation's browser-language auto-translation
 
-**Summary.** Some Japanese sites embed **Shutto Translation** (シャトル翻訳,
+## Summary
+
+Some Japanese sites embed **Shutto Translation** (シャトル翻訳,
 `d.shutto-translation.com`), a third-party JS widget that reads the visitor's
 browser language priority and *auto-translates the page* — for the owner (OS in
 English, browser languages `en-GB, en-US, ja, en`) it silently rewrites native
 Japanese sites into English. The owner is a Japanese speaker and wants the
 original Japanese. **Add a static `declarativeNetRequest` rule that blocks the
 Shutto script on every site**, so the widget never runs and each page stays in
-its server-rendered original language. Status: **Done** — shipped in v0.3.0 as
-the global `src/rules/shutto.json` block rule; verified in Chrome and Firefox.
-Problem was reproduced and root-caused live; approach and scope decided with the
-owner.
+its server-rendered original language.
 
 This is bouncer's second network-block feature and a near-exact parallel to the
 existing filmarks-geniee rule (`stories/2026-07-21a`). Read that story and
 `README.md` for the established pattern; this one reuses it with one deliberate
 difference: **the block is global, not site-scoped.**
+
+## Status
+
+**Done** — shipped in v0.3.0 as the global `src/rules/shutto.json` block rule;
+verified in Chrome and Firefox. Problem was reproduced and root-caused live;
+approach and scope decided with the owner.
 
 ## Context
 

@@ -91,12 +91,19 @@ Match the project's tone, but do **not** copy the shape of older stories in
 Ordered as *what the agent needs, when it needs it* — a reader who stops after
 the first two sections already knows what to build and what not to touch.
 
+Each section below is an `## h2` heading in the story; the title is the only
+`#`. Don't demote them to bold-lead paragraphs.
+
 **Top — the frame**
 
 - **`# Title`** — imperative and concrete.
-- **Summary** — 2–4 sentences: *what* we're building, *why it matters*, and the
-  *current status*. This is the lede; for a small story it also serves as the
-  goal.
+- **Summary** — 2–4 sentences: *what* we're building and *why it matters*. This
+  is the lede; for a small story it also serves as the goal. Keep it about the
+  work itself — where it stands goes in **Status**.
+- **Status** — its own short section, one line: where the work stands right now
+  — *not started* / *in progress* / *done*, and when done, the shipped version
+  or location (e.g. "Done — shipped in v0.3.0 as `src/rules/shutto.json`"). A
+  cold reader checks this first to know whether anything is left to build.
 
 **Middle — the decision core**
 
