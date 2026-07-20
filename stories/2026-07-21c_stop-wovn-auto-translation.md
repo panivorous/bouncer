@@ -21,9 +21,9 @@ explicitly below; none of them change the fix.
 
 ## Status
 
-**Not started** — problem reproduced and root-caused live in Chrome
-(2026-07-21); approach and global scope decided with the owner. This PR adds the
-story only; no code has been written.
+**Done** — shipped in v0.4.0 as the global `src/rules/wovn.json` block rule;
+verified by the owner. Problem was reproduced and root-caused live; approach and
+scope decided with the owner.
 
 ## Context
 

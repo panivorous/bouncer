@@ -6,9 +6,10 @@ Runs on **Firefox** (mainly) and **Chrome**. Manifest V3, TypeScript, no
 framework — a hand-written manifest plus plain source, compiled and zipped by a
 small npm script.
 
-> **Status:** two features shipped. Blocks the filmarks.com ad-gate popup and
-> Shutto Translation's browser-language auto-translation (see
-> [Features](#features)). Still loads cleanly in both browsers.
+> **Status:** three features shipped. Blocks the filmarks.com ad-gate popup,
+> Shutto Translation's browser-language auto-translation, and WOVN.io's
+> browser-language auto-translation (see [Features](#features)). Still loads
+> cleanly in both browsers.
 
 ## Features
 
@@ -47,6 +48,27 @@ annoyance is the mechanism, not one domain. Scope is tuned via `initiatorDomains
 — **add it to narrow** the block to specific sites, **omit it to keep global**.
 (Consequence of global: a non-Japanese site that uses Shutto to translate *into*
 Japanese will show its original language instead.)
+
+### Stop WOVN.io's browser-language auto-translation
+
+Many Japanese sites also embed **WOVN.io** (`wovn.io`), a second, independent
+Japanese localization SaaS with the same client-side auto-translation
+behaviour as Shutto: it reads the visitor's browser language priority and, on
+a cookieless first visit, auto-switches the page away from its server-rendered
+original language. bouncer blocks the WOVN loader script at the network layer
+with a static
+[`declarativeNetRequest`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest)
+rule (`src/rules/wovn.json`), so the widget never runs and each page stays in
+its server-rendered original language — no flash, no cleanup. Declarative
+config, not code: no content script, no background logic.
+
+Like the Shutto rule, this one is **global** — no `initiatorDomains`, so WOVN
+is blocked on every site. Scope is tuned via `initiatorDomains` — **add it to
+narrow** the block to specific sites, **omit it to keep global**. (Consequence
+of global: a non-Japanese site that uses WOVN to translate *into* Japanese will
+show its original language instead.) Sites with a genuine server-side
+translated route (e.g. `/en/…`) are unaffected — the block only stops the
+*automatic* switch, not explicit navigation to that route.
 
 ## Prerequisites
 
