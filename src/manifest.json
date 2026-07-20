@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "bouncer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "My personal all-in-one browser extension that fixes my browsing annoyances.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -24,6 +24,11 @@
         "id": "shutto",
         "enabled": true,
         "path": "rules/shutto.json"
+      },
+      {
+        "id": "wovn",
+        "enabled": true,
+        "path": "rules/wovn.json"
       }
     ]
   },
