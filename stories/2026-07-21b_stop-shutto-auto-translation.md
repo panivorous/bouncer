@@ -7,8 +7,10 @@ English, browser languages `en-GB, en-US, ja, en`) it silently rewrites native
 Japanese sites into English. The owner is a Japanese speaker and wants the
 original Japanese. **Add a static `declarativeNetRequest` rule that blocks the
 Shutto script on every site**, so the widget never runs and each page stays in
-its server-rendered original language. Status: **not started** — problem
-reproduced and root-caused live; approach and scope decided with the owner.
+its server-rendered original language. Status: **Done** — shipped in v0.3.0 as
+the global `src/rules/shutto.json` block rule; verified in Chrome and Firefox.
+Problem was reproduced and root-caused live; approach and scope decided with the
+owner.
 
 This is bouncer's second network-block feature and a near-exact parallel to the
 existing filmarks-geniee rule (`stories/2026-07-21a`). Read that story and
