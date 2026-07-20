@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Build output & packaged artifacts
+dist/
+build/
+web-ext-artifacts/
+*.zip
+*.xpi
+
+# Claude Code worktree isolation
+.claude/worktrees/

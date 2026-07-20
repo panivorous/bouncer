@@ -1,6 +1,6 @@
 # Bootstrap a minimal cross-browser extension + build pipeline
 
-- **Status:** Ready to implement (not started)
+- **Status:** Done — verified loading in both Firefox and Chrome.
 
 ---
 
