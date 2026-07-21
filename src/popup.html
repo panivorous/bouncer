@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bouncer</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        min-width: 15rem;
+        margin: 0;
+        padding: 0.9rem 1rem;
+        font: 13px/1.45 system-ui, sans-serif;
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+      }
+      #status {
+        margin: 0 0 0.75rem;
+      }
+      button {
+        width: 100%;
+        padding: 0.5rem;
+        font: inherit;
+        cursor: pointer;
+      }
+      button[hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>bouncer</h1>
+    <p id="status">Loading…</p>
+    <button id="enable" hidden type="button">Force Japanese on .jp sites</button>
+    <script src="popup.js"></script>
+  </body>
+</html>

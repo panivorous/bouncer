@@ -6,10 +6,11 @@ Runs on **Firefox** (mainly) and **Chrome**. Manifest V3, TypeScript, no
 framework — a hand-written manifest plus plain source, compiled and zipped by a
 small npm script.
 
-> **Status:** three features shipped. Blocks the filmarks.com ad-gate popup,
+> **Status:** four features shipped. Blocks the filmarks.com ad-gate popup,
 > Shutto Translation's browser-language auto-translation, and WOVN.io's
-> browser-language auto-translation (see [Features](#features)). Still loads
-> cleanly in both browsers.
+> browser-language auto-translation, and forces Japanese `navigator.language`
+> on every `.jp` site (see [Features](#features)). Still loads cleanly in both
+> browsers.
 
 ## Features
 
@@ -70,6 +71,47 @@ show its original language instead.) Sites with a genuine server-side
 translated route (e.g. `/en/…`) are unaffected — the block only stops the
 *automatic* switch, not explicit navigation to that route.
 
+### Force Japanese `navigator.language` on every `.jp` site
+
+Some Japanese sites sniff the browser's self-reported language **in
+first-party page JavaScript** and redirect away from Japanese when English
+outranks it. The motivating case, `monokakido.jp`, ships an inline script on
+its own homepage that reads `navigator.language` and does
+`location.replace("./en/")` unless it starts with `"ja"`. Unlike Shutto/WOVN
+there's **no third-party script to block** and **no HTTP-level redirect to
+intercept**, so the `declarativeNetRequest` approach doesn't apply here.
+
+Instead, bouncer ships a tiny content script (`src/lang-override.ts`) that
+overrides `navigator.language` **and** `navigator.languages` to report Japanese
+on every `*.jp` site. Any site that trusts the browser's self-reported language
+(this one included) then sees Japanese and leaves the page alone — no per-site
+rule needed, and it pre-empts any other `.jp` site doing the same kind of
+sniffing. Like the Shutto/WOVN blocks it's **global by design**: it applies to
+*every* `.jp` site, so if you ever wanted English on a `.jp` site on purpose,
+this overrides that too (no opt-out in this version — deferred to a later story
+if it bites).
+
+The override runs at `document_start` in the page's **main world** (so it's in
+place before the page's own scripts read `navigator`). The two browsers reach
+that main world differently, which is where a real asymmetry shows up:
+
+- **Chrome** injects it via a static `content_scripts` manifest entry with
+  `"world": "MAIN"`. It's on the moment the extension loads — **nothing to
+  click**.
+- **Firefox** has no static "world" key, so the main-world injection must go
+  through the `userScripts` API, whose permission Firefox only grants
+  *optionally, at runtime, from a user gesture*. So bouncer has a **one-click
+  popup** (its first-ever UI, `src/popup.html`): click the toolbar button once
+  after install/update to grant the permission and turn the feature on. Until
+  you click it, `.jp` sites in Firefox behave completely normally — that's
+  expected, not a bug.
+
+**Known limitation:** this only affects **client-side JS** language detection.
+It does *not* change the `Accept-Language` HTTP request header, so a site that
+switches language **server-side** based on that header is unaffected.
+(`monokakido.jp` ignores `Accept-Language` entirely, so it's fully covered; the
+gap is only hypothetical `.jp` sites that negotiate language server-side.)
+
 ## Prerequisites
 
 - **Node.js 26** + npm. The exact versions are pinned (`.node-version` and
@@ -126,6 +168,12 @@ Chrome runs the MV3 **service worker** and ignores the Firefox-only
 1. Go to `about:debugging#/runtime/this-firefox`.
 2. **Load Temporary Add-on** → pick `dist/manifest.json`, or
    `web-ext-artifacts/bouncer-firefox.zip`.
+3. **One-time, for the `.jp` language feature:** click bouncer's toolbar button
+   and press **Force Japanese on .jp sites** to grant the `userScripts`
+   permission. See
+   [Force Japanese `navigator.language`](#force-japanese-navigatorlanguage-on-every-jp-site)
+   for why this manual step exists on Firefox but not Chrome. The network-block
+   features (filmarks/Shutto/WOVN) work with no click.
 
 Temporary add-ons are removed when Firefox restarts (signing / permanent
 install is deferred to a later story). Firefox uses `background.scripts` and
@@ -147,7 +195,10 @@ informational warning; it is expected and not an error.
 ```
 src/
   manifest.json      # single MV3 manifest for both browsers
-  background.ts      # placeholder service worker (no behaviour yet)
+  background.ts      # service worker; registers the Firefox .jp userScript
+  lang-override.ts   # main-world payload: forces navigator.language = ja on .jp
+  popup.html         # action popup (Firefox "click to enable" UI)
+  popup.ts           # popup logic: request userScripts permission on Firefox
   icons/             # generated placeholder icons (16/48/128)
   rules/             # static declarativeNetRequest rulesets (network blocks)
 scripts/
