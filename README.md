@@ -9,8 +9,8 @@ small npm script.
 > **Status:** four features shipped. Blocks the filmarks.com ad-gate popup,
 > Shutto Translation's browser-language auto-translation, and WOVN.io's
 > browser-language auto-translation, and forces Japanese `navigator.language`
-> on every `.jp` site (see [Features](#features)). Still loads cleanly in both
-> browsers.
+> on every `.jp` site **plus any other site that declares itself Japanese**
+> (see [Features](#features)). Still loads cleanly in both browsers.
 
 ## Features
 
@@ -71,23 +71,44 @@ show its original language instead.) Sites with a genuine server-side
 translated route (e.g. `/en/…`) are unaffected — the block only stops the
 *automatic* switch, not explicit navigation to that route.
 
-### Force Japanese `navigator.language` on every `.jp` site
+### Force Japanese `navigator.language` on Japanese-language sites
 
 Some Japanese sites sniff the browser's self-reported language **in
-first-party page JavaScript** and redirect away from Japanese when English
-outranks it. The motivating case, `monokakido.jp`, ships an inline script on
-its own homepage that reads `navigator.language` and does
-`location.replace("./en/")` unless it starts with `"ja"`. Unlike Shutto/WOVN
-there's **no third-party script to block** and **no HTTP-level redirect to
-intercept**, so the `declarativeNetRequest` approach doesn't apply here.
+first-party page JavaScript** and redirect (or re-render) away from Japanese
+when English outranks it. The original case, `monokakido.jp`, ships an inline
+script on its own homepage that reads `navigator.language` and does
+`location.replace("./en/")` unless it starts with `"ja"`. A later case,
+`tamachi-tower.com`, is a `.com` Nuxt/nuxt-i18n SPA that reads
+`navigator.languages` and re-renders itself in English in place. Unlike
+Shutto/WOVN there's **no third-party script to block** and **no HTTP-level
+redirect to intercept**, so the `declarativeNetRequest` approach doesn't apply
+here.
 
 Instead, bouncer ships a tiny content script (`src/lang-override.ts`) that
-overrides `navigator.language` **and** `navigator.languages` to report Japanese
-on every `*.jp` site. Any site that trusts the browser's self-reported language
-(this one included) then sees Japanese and leaves the page alone — no per-site
-rule needed, and it pre-empts any other `.jp` site doing the same kind of
-sniffing. Like the Shutto/WOVN blocks it's **global by design**: it applies to
-*every* `.jp` site, so if you ever wanted English on a `.jp` site on purpose,
+overrides `navigator.language` **and** `navigator.languages` to report
+Japanese. Any site that trusts the browser's self-reported language then sees
+Japanese and leaves the page alone. The script runs on **every** site
+(`<all_urls>`) but decides *per page* whether to actually install the override,
+using two layers:
+
+- **`.jp` hosts — unconditional.** Every `*.jp` site gets the override
+  immediately and synchronously, exactly as before. This is the layer that
+  covers sites like `monokakido.jp` that declare **no** language at all and
+  sniff inline in `<head>` — there's no signal to detect and no time to wait.
+- **Every other host — auto-detect.** The override installs **only if the page
+  declares itself Japanese**: a `<html lang="ja">` attribute, or a
+  **self-referential** `<link rel="alternate" hreflang="ja">` (one whose `href`
+  is the current page — i.e. the page saying "*this* URL is the Japanese one").
+  A short-lived `MutationObserver` watches the document stream in at
+  `document_start` so the override lands before the site's own detector runs,
+  then disconnects at `DOMContentLoaded`. **Self-reference is required on
+  purpose:** a primarily-English site that merely *offers* a Japanese version
+  also lists an `hreflang="ja"` alternate (pointing elsewhere), and we must
+  **not** force Japanese on it.
+
+This auto-detects non-`.jp` Japanese sites (`tamachi-tower.com` included) with
+no per-domain allowlist. Like the Shutto/WOVN blocks the `.jp` layer is
+**global by design**: if you ever wanted English on a `.jp` site on purpose,
 this overrides that too (no opt-out in this version — deferred to a later story
 if it bites).
 
@@ -96,21 +117,25 @@ place before the page's own scripts read `navigator`). The two browsers reach
 that main world differently, which is where a real asymmetry shows up:
 
 - **Chrome** injects it via a static `content_scripts` manifest entry with
-  `"world": "MAIN"`. It's on the moment the extension loads — **nothing to
-  click**.
+  `"world": "MAIN"`, matching `<all_urls>`. It's on the moment the extension
+  loads — **nothing to click** (the install warning is now "read and change all
+  your data on all websites", because the detector must inspect every page).
 - **Firefox** has no static "world" key, so the main-world injection must go
   through the `userScripts` API, whose permission Firefox only grants
   *optionally, at runtime, from a user gesture*. So bouncer has a **one-click
   popup** (its first-ever UI, `src/popup.html`): click the toolbar button once
-  after install/update to grant the permission and turn the feature on. Until
-  you click it, `.jp` sites in Firefox behave completely normally — that's
-  expected, not a bug.
+  after install/update to grant `userScripts` + `<all_urls>` host access and
+  turn the feature on. Until you click it, sites in Firefox behave completely
+  normally — that's expected, not a bug.
 
 **Known limitation:** this only affects **client-side JS** language detection.
 It does *not* change the `Accept-Language` HTTP request header, so a site that
 switches language **server-side** based on that header is unaffected.
-(`monokakido.jp` ignores `Accept-Language` entirely, so it's fully covered; the
-gap is only hypothetical `.jp` sites that negotiate language server-side.)
+(`monokakido.jp` and `tamachi-tower.com` are both client-side, so they're fully
+covered; the gap is only hypothetical sites that negotiate language
+server-side.) It also can't beat a non-`.jp` site that sniffs **inline in
+`<head>` above** its own self-declaration — there's no signal to detect yet at
+that point; the `.jp` glob is the fallback for the one known such case.
 
 ## Prerequisites
 
@@ -168,10 +193,10 @@ Chrome runs the MV3 **service worker** and ignores the Firefox-only
 1. Go to `about:debugging#/runtime/this-firefox`.
 2. **Load Temporary Add-on** → pick `dist/manifest.json`, or
    `web-ext-artifacts/bouncer-firefox.zip`.
-3. **One-time, for the `.jp` language feature:** click bouncer's toolbar button
-   and press **Force Japanese on .jp sites** to grant the `userScripts`
-   permission. See
-   [Force Japanese `navigator.language`](#force-japanese-navigatorlanguage-on-every-jp-site)
+3. **One-time, for the language feature:** click bouncer's toolbar button
+   and press **Force Japanese on Japanese-language sites** to grant the
+   `userScripts` + `<all_urls>` permissions. See
+   [Force Japanese `navigator.language`](#force-japanese-navigatorlanguage-on-japanese-language-sites)
    for why this manual step exists on Firefox but not Chrome. The network-block
    features (filmarks/Shutto/WOVN) work with no click.
 
@@ -195,8 +220,8 @@ informational warning; it is expected and not an error.
 ```
 src/
   manifest.json      # single MV3 manifest for both browsers
-  background.ts      # service worker; registers the Firefox .jp userScript
-  lang-override.ts   # main-world payload: forces navigator.language = ja on .jp
+  background.ts      # service worker; registers the Firefox userScript
+  lang-override.ts   # main-world payload: forces navigator.language = ja on .jp + self-declared-ja sites
   popup.html         # action popup (Firefox "click to enable" UI)
   popup.ts           # popup logic: request userScripts permission on Firefox
   icons/             # generated placeholder icons (16/48/128)
