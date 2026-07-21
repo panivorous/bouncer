@@ -21,11 +21,16 @@ chosen by the owner over simpler alternatives; read Decisions below for why.
 
 ## Status
 
-**Not started.** Problem reproduced and root-caused live; approach, scope, and
-injection technique decided with the owner across an extended back-and-forth
-(see Decisions — several early framings were corrected mid-conversation as
-new technical facts surfaced, e.g. Firefox's permission model). No code
-written yet.
+**Done — shipped in v0.5.0; verified live in Chrome and Firefox by the owner.**
+bouncer's first content script and first UI. A shared main-world payload
+(`src/lang-override.ts`) overrides `navigator.language`/`navigator.languages` to
+Japanese on `*.jp`. Chrome injects it via a static `content_scripts` entry
+(`"world": "MAIN"`); Firefox registers it at runtime via `userScripts.register`
+(`src/background.ts`), gated behind a one-click permission popup
+(`src/popup.html` / `src/popup.ts`). `npm run build`, `npm run typecheck`, and
+`npm run lint` all pass (lint shows only the pre-existing, expected
+`service_worker`-ignored-on-Firefox warning). Approach, scope, and injection
+technique were decided with the owner (see Decisions).
 
 ## Context
 
