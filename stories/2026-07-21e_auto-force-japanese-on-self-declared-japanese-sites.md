@@ -20,11 +20,21 @@ declare *nothing* (e.g. `monokakido.jp`), which auto-detect can't catch.
 
 ## Status
 
-**Not started.** Problem reproduced and root-caused live in Chrome on
-2026-07-21; mechanism, scope, signal, and timing technique all decided with the
-owner and verified live (see Context + Appendix). This is bouncer's **fifth**
-feature and an evolution of the fourth — the next minor version (suggest
-v0.6.0).
+**Done — shipped in v0.6.0.** bouncer's **fifth** feature and an evolution of
+the fourth. The shared main-world payload (`src/lang-override.ts`) now runs on
+`<all_urls>` and gates itself per page: `.jp` hosts install the override
+unconditionally and synchronously as before; every other host installs it only
+if the page declares itself Japanese (`<html lang="ja">` or a self-referential
+`<link rel="alternate" hreflang="ja">`), with a short-lived `MutationObserver`
+catching a self-declaration that streams in after `document_start` and
+disconnecting at `DOMContentLoaded`. The Chrome content-script match, the
+Firefox `userScripts` registration + optional host permission, and the popup
+copy were all widened to `<all_urls>`, and the README was refreshed. `npm run
+build`, `npm run typecheck`, and `npm run lint` all pass (lint shows only the
+pre-existing, expected `service_worker`-ignored-on-Firefox warning). Problem was
+reproduced and root-caused live in Chrome on 2026-07-21; mechanism, scope,
+signal, and timing technique all decided with the owner and verified live (see
+Context + Appendix).
 
 ## Context
 
